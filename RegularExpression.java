@@ -8,6 +8,7 @@ class RegularExpression {
         // Define token patterns
         tokenPatterns = Map.of(
                 "PUNCTUATION", "[💲]",
+                "DELIMITER", "🔕(?s).*?🔕",
                 "KEYWORD", "\\b💹|🔢|🔤|🏳️|🚩|🌏|🏁🏎️\\b",
                 "OPERATOR", "[⏩➕➖➗❌💯🤯]",
                 "IDENTIFIER", "[a-z][a-z]*",
