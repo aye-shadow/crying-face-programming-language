@@ -32,12 +32,7 @@ public class NFA {
         acceptStates.add(state);
     }
 
-    public void regularExpressionToNFA() {
-        // create inital state
-        State initialState = new State(), endState = new State();
-        setStartState(initialState);
-        addState(initialState);
-
+    public void addNumberRegex(State initialState) {
         Pattern numPattern = regularExpression.TOKENPATTERNS.get("NUMBER");
         String patternStr = numPattern.pattern();
         patternStr = patternStr.replaceAll("\\s+", "");
@@ -143,8 +138,48 @@ public class NFA {
         addAcceptState(currentState);
     }
 
-    public void printNFA() {
+    public void addCharactersRegex(State initialState) {
+        Pattern charPattern = regularExpression.TOKENPATTERNS.get("IDENTIFIER");
+        String patternStr = charPattern.pattern();
+        patternStr = patternStr.replaceAll("\\s+", "");
 
+        State prevState = null, currentState = initialState;
+
+        for (int i = 0; i < patternStr.length(); ++i) {
+            if (patternStr.charAt(i) == '[') {
+                String charClass = "";
+                for (i = i + 1; patternStr.charAt(i) != ']'; ++i) {
+                    charClass += patternStr.charAt(i);
+                }
+
+                State singleCharState = new State();
+                addState(singleCharState);
+
+                prevState = currentState;
+                currentState = singleCharState;
+
+                prevState.addTransition(Pattern.compile("[" + charClass + "]"), singleCharState);
+            }
+            else if (patternStr.charAt(i) == '*') {
+                Pattern pattern = prevState.getTransitions().keySet().iterator().next();
+                currentState.addTransition(pattern, currentState);
+            }
+        }
+
+        addAcceptState(currentState);
+    }
+
+    public void regularExpressionToNFA() {
+        // create inital state
+        State initialState = new State(), endState = new State();
+        setStartState(initialState);
+        addState(initialState);
+
+        addNumberRegex(initialState);
+        addCharactersRegex(initialState);
+    }
+
+    public void printNFA() {
         System.out.println("Start State: " + startState.getId());
         System.out.println("\nAccept States: " + acceptStates.stream().map(State::getId).toList());
         System.out.println("\nStates and Transitions:");
