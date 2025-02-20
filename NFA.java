@@ -32,6 +32,46 @@ public class NFA {
         acceptStates.add(state);
     }
 
+    public void addCommentRegex(State initialState) {
+        Pattern commentPattern = regularExpression.TOKENPATTERNS.get("DELIMITER");
+        String patternStr = commentPattern.pattern();
+        patternStr = patternStr.replaceAll("\\s+", "");
+
+        State prevState = null, currentState = initialState;
+
+        for (int i = 0; i < patternStr.length(); ++i) {
+            if (patternStr.charAt(i) == '🔕') {
+                State startCommentState = new State();
+                addState(startCommentState);
+
+                prevState = currentState;
+                currentState = startCommentState;
+
+                prevState.addTransition(Pattern.compile("🔕"), startCommentState);
+            }
+            else if (patternStr.charAt(i) == '(' && patternStr.charAt(i + 1) == '?' && patternStr.charAt(i + 2) == 's' && patternStr.charAt(i + 3) == ')') {
+                // flag that enables "dot all" mode
+                i += 4;
+                if (patternStr.charAt(i) == '.') {
+                    // match anything
+
+                    currentState.addTransition(Pattern.compile("."), currentState);
+                }
+            }
+            else if (patternStr.charAt(i) == '?' && patternStr.charAt(i + 1) == '🔕') {
+                State endCommentState = new State();
+                addState(endCommentState);
+
+                prevState = currentState;
+                currentState = endCommentState;
+
+                prevState.addTransition(Pattern.compile("🔕"), endCommentState);
+            }
+        }
+
+        addAcceptState(currentState);
+    }
+
     public void addNumberRegex(State initialState) {
         Pattern numPattern = regularExpression.TOKENPATTERNS.get("NUMBER");
         String patternStr = numPattern.pattern();
@@ -177,6 +217,7 @@ public class NFA {
 
         addNumberRegex(initialState);
         addCharactersRegex(initialState);
+        addCommentRegex(initialState);
     }
 
     public void printNFA() {
