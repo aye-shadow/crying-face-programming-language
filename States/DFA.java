@@ -6,14 +6,16 @@ import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-public class DFA {
+public class DFA
+{
     private State startState;
     private Set<State> states;
     private Set<State> acceptStates;
     private Map<Set<State>, State> nfaStatesToDfaState;
     private NFA nfa;
 
-    public DFA() {
+    public DFA()
+    {
         this.nfa = NFA.getInstance();
         nfa.regularExpressionToNFA();
         nfa.printNFA();

@@ -16,7 +16,7 @@ public class Main
         dfa.printDFA();
 
         Scanner scanner = new Scanner("States/transition_table.txt");
-        scanner.fileProcessor.processFiles();
+        //Scanner.FileProcessor.processFiles();
     }
 }
 
@@ -46,6 +46,8 @@ public class Main
 //            if (token.matches("[a-z]")) { // Identifiers (e.g., a, b, c)
 //                symbolTable.addSymbol(token, "identifier", "local");
 //            } else if (token.matches("^\\d+(\\.\\d+)?$")) { // Numbers (e.g., 5, 6)
+//
+//
 //                symbolTable.addSymbol(token, "number", "local");
 //            }
 //            // Add more conditions if needed for different token types
