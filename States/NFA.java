@@ -300,6 +300,11 @@ public class NFA {
                     charClass += patternStr.charAt(i);
                 }
 
+                if (patternStr.charAt(i + 1) == '*') {
+                    currentState.addTransition(Pattern.compile("[" + charClass + "]*"), currentState);
+                    continue;
+                }
+
                 State singleCharState = new State();
                 addState(singleCharState);
 
@@ -307,10 +312,6 @@ public class NFA {
                 currentState = singleCharState;
 
                 prevState.addTransition(Pattern.compile("[" + charClass + "]"), singleCharState);
-            }
-            else if (patternStr.charAt(i) == '*') {
-                Pattern pattern = prevState.getTransitions().keySet().iterator().next();
-                currentState.addTransition(pattern, currentState);
             }
         }
 

@@ -17,7 +17,8 @@ public class Main
     {
         NFA nfa = NFA.getInstance();
         nfa.regularExpressionToNFA();
-        nfa.nfaGraphToTable();
+        nfa.printNFA();
+        // nfa.nfaGraphToTable();
 
         // Sample tokens parsed from the provided code
         String[] tokens = {
