@@ -8,12 +8,17 @@
 //    }
 //}
 
+import States.NFA;
 import Symbols.SymbolTable;
 
 public class Main
 {
     public static void main(String[] args)
     {
+        NFA nfa = NFA.getInstance();
+        nfa.regularExpressionToNFA();
+        nfa.nfaGraphToTable();
+
         // Sample tokens parsed from the provided code
         String[] tokens = {
                 "🔢", "a", "=", "5",

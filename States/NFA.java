@@ -2,6 +2,7 @@ package States;
 
 import java.util.*;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class NFA {
     private State startState;
@@ -10,12 +11,20 @@ public class NFA {
     private Set<State> rejectStates;
     private final RegularExpression regularExpression;
     private static final Pattern EPSILON = Pattern.compile("ε");
+    private static NFA instance = null;
 
     NFA() {
         regularExpression = new RegularExpression();
         states = new HashSet<>();
         acceptStates = new HashSet<>();
         rejectStates = new HashSet<>();
+    }
+
+    public static NFA getInstance() {
+        if (instance == null) {
+            instance = new NFA();
+        }
+        return instance;
     }
 
     public void addState(State state) {
@@ -333,6 +342,33 @@ public class NFA {
                     System.out.println("\t  " + entry.getKey() + " -> States.State " + targetState.getId());
                 }
             }
+        }
+        System.out.println('\n');
+    }
+
+    public void nfaGraphToTable() {
+        System.out.println("NFA Transition Table:");
+        System.out.println("State\tTransitions");
+
+        for (State state : states) {
+            StringBuilder transitions = new StringBuilder();
+            Map<Pattern, Set<State>> stateTransitions = state.getTransitions();
+
+            if (!stateTransitions.isEmpty()) {
+                for (Map.Entry<Pattern, Set<State>> entry : stateTransitions.entrySet()) {
+                    String symbol = entry.getKey().pattern();
+                    String nextStates = entry.getValue().stream()
+                            .map(State::getId)
+                            .map(String::valueOf)
+                            .collect(Collectors.joining(","));
+
+                    transitions.append(symbol).append("->").append(nextStates).append("; ");
+                }
+                // Remove trailing separator
+                transitions.setLength(transitions.length() - 2);
+            }
+
+            System.out.println(state.getId() + "\t" + transitions);
         }
     }
 }
