@@ -14,4 +14,11 @@ class RegularExpression {
         TOKENPATTERNS.put("WHITESPACE", Pattern.compile("\\s+"));
         TOKENPATTERNS.put("UNKNOWN", Pattern.compile("."));
     }
+
+    public String getPattern(String type) {
+        Pattern punctPattern = TOKENPATTERNS.get(type);
+        String patternStr = punctPattern.pattern();
+        patternStr = patternStr.replaceAll("\\s+", "");
+        return patternStr;
+    }
 }

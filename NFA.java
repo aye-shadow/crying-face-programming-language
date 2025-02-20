@@ -7,7 +7,7 @@ public class NFA {
     private Set<State> acceptStates;
     private Set<State> rejectStates;
     private final RegularExpression regularExpression;
-    private static final Pattern EPSILON = Pattern.compile("E");
+    private static final Pattern EPSILON = Pattern.compile("ε");
 
     NFA() {
         regularExpression = new RegularExpression();
@@ -20,10 +20,6 @@ public class NFA {
         states.add(state);
     }
 
-    public void addEpsilonTransition(State fromState, State toState) {
-        fromState.addTransition(EPSILON, toState);
-    }
-
     public void setStartState(State state) {
         startState = state;
     }
@@ -32,10 +28,116 @@ public class NFA {
         acceptStates.add(state);
     }
 
+    public void addOperatorRegex(State initialState) {
+        String patternStr = regularExpression.getPattern("OPERATOR");
+
+        State prevState = null, currentState = initialState;
+
+        Boolean firstDone = false;
+        for (int i = 0; i < patternStr.length(); ++i) {
+            if (patternStr.charAt(i) == '[' || patternStr.charAt(i) == ']')
+                continue;
+
+            char currentChar = patternStr.charAt(i);
+            String currentEmoji = patternStr.substring(i, i + 2);
+            if (currentChar == '⏩' || currentChar == '➕' || currentChar == '➖' || currentChar == '➗' || currentChar == '❌' || currentEmoji.equals("💯") || currentEmoji.equals("🤯") || currentEmoji.equals("🌏")) {
+                if (firstDone) {
+                    if (currentEmoji.equals("💯") || currentEmoji.equals("🤯") || currentEmoji.equals("🌏")) {
+                        prevState.addTransition(Pattern.compile(currentEmoji), currentState);
+                    }
+                    else {
+                        prevState.addTransition(Pattern.compile(String.valueOf(currentChar)), currentState);
+                    }
+                    continue;
+                }
+
+                State keywordState = new State();
+                addState(keywordState);
+
+                prevState = currentState;
+                currentState = keywordState;
+
+                if (currentEmoji.equals("💯") || currentEmoji.equals("🤯") || currentEmoji.equals("🌏")) {
+                    prevState.addTransition(Pattern.compile(currentEmoji), keywordState);
+                }
+                else {
+                    prevState.addTransition(Pattern.compile(String.valueOf(currentChar)), keywordState);
+                }
+
+                firstDone = true;
+            }
+        }
+
+        addAcceptState(currentState);
+    }
+
+    public void addKeywordRegex(State initialState) {
+        String patternStr = regularExpression.getPattern("KEYWORD");
+
+        State prevState = null, currentState = initialState;
+
+        Boolean editPrevTransition = false;
+        for (int i = 0; i < patternStr.length(); ++i) {
+            if (patternStr.charAt(i) == '\\' && patternStr.charAt(i + 1) == 'b') {
+                ++i;
+                continue;
+            }
+
+            String currentEmoji = patternStr.substring(i, i + 2);
+            if (currentEmoji.equals("💹") || currentEmoji.equals("🔢") || currentEmoji.equals("🚗") || currentEmoji.equals("🏳️") || currentEmoji.equals("🚩") || (currentEmoji.equals("🏁"))) {
+                if (editPrevTransition) {
+                    if (currentEmoji.equals("🏁")) {
+                        prevState.addTransition(Pattern.compile("🏁🏎️"), currentState);
+                    }
+                    else {
+                        prevState.addTransition(Pattern.compile(currentEmoji), currentState);
+                    }
+                    continue;
+                }
+
+                State keywordState = new State();
+                addState(keywordState);
+
+                prevState = currentState;
+                currentState = keywordState;
+
+                if (currentEmoji.equals("🏁")) {
+                    prevState.addTransition(Pattern.compile("🏁🏎️"), keywordState);
+                }
+                else {
+                    prevState.addTransition(Pattern.compile(currentEmoji), keywordState);
+                }
+            }
+            else if (patternStr.charAt(i) == '|') {
+                editPrevTransition = true;
+            }
+        }
+
+        addAcceptState(currentState);
+    }
+
+    public void addPunctuationRegex(State initialState) {
+        String patternStr = regularExpression.getPattern("PUNCTUATION");
+
+        State prevState = null, currentState = initialState;
+
+        for (int i = 0; i < patternStr.length(); ++i) {
+            if (patternStr.charAt(i) == '💲') {
+                State punctState = new State();
+                addState(punctState);
+
+                prevState = currentState;
+                currentState = punctState;
+
+                prevState.addTransition(Pattern.compile("💲"), punctState);
+            }
+        }
+
+        addAcceptState(currentState);
+    }
+
     public void addCommentRegex(State initialState) {
-        Pattern commentPattern = regularExpression.TOKENPATTERNS.get("DELIMITER");
-        String patternStr = commentPattern.pattern();
-        patternStr = patternStr.replaceAll("\\s+", "");
+        String patternStr = regularExpression.getPattern("DELIMITER");
 
         State prevState = null, currentState = initialState;
 
@@ -73,10 +175,7 @@ public class NFA {
     }
 
     public void addNumberRegex(State initialState) {
-        Pattern numPattern = regularExpression.TOKENPATTERNS.get("NUMBER");
-        String patternStr = numPattern.pattern();
-        patternStr = patternStr.replaceAll("\\s+", "");
-        System.out.println(patternStr);
+        String patternStr = regularExpression.getPattern("NUMBER");
 
         State prevState, currentState = initialState;
         Stack<State> paranthesis = new Stack<>();
@@ -179,9 +278,7 @@ public class NFA {
     }
 
     public void addCharactersRegex(State initialState) {
-        Pattern charPattern = regularExpression.TOKENPATTERNS.get("IDENTIFIER");
-        String patternStr = charPattern.pattern();
-        patternStr = patternStr.replaceAll("\\s+", "");
+        String patternStr = regularExpression.getPattern("IDENTIFIER");
 
         State prevState = null, currentState = initialState;
 
@@ -218,6 +315,9 @@ public class NFA {
         addNumberRegex(initialState);
         addCharactersRegex(initialState);
         addCommentRegex(initialState);
+        addPunctuationRegex(initialState);
+        addKeywordRegex(initialState);
+        addOperatorRegex(initialState);
     }
 
     public void printNFA() {
