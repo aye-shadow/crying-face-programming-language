@@ -13,7 +13,6 @@ class RegularExpression {
         TOKENPATTERNS.put("OPERATOR", Pattern.compile("[⏩➕➖➗❌💯🤯🌏]"));  //4
         TOKENPATTERNS.put("IDENTIFIER", Pattern.compile("[a-z][a-z]*"));   //5
         TOKENPATTERNS.put("NUMBER", Pattern.compile("^\\d+(\\.\\d{0,5})?$"));  //6
-        TOKENPATTERNS.put("WHITESPACE", Pattern.compile("\\s+")); //7
         TOKENPATTERNS.put("UNKNOWN", Pattern.compile("."));
     }
 

@@ -1,18 +1,15 @@
 package Scanner;
+
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 class Token {
     private String type;
     private String value;
 
-    public Token(String type, String value)
-    {
+    public Token(String type, String value) {
         this.type = type;
         this.value = value;
     }
@@ -27,104 +24,172 @@ public class Scanner
 {
     private Map<Integer, Map<String, Integer>> transitionTable;
     private int startState;
-    private int acceptState;
-    public FileProcessor fileProcessor = null;
+    private Set<Integer> acceptStates;
 
-    public Scanner(String filePath)
-    {
+    public Scanner(String filePath) {
         transitionTable = new HashMap<>();
+        acceptStates = new HashSet<>();
         loadTransitionTable(filePath);
-        startState = 0;
-        acceptState = 4; // Assuming 4 is the error state (non-accepting)
-        fileProcessor = new FileProcessor();
     }
 
-    private void loadTransitionTable(String filePath)
-    {
-        // this is to be set up with our Dfa-table
-        try (BufferedReader br = new BufferedReader(new FileReader(filePath)))
-        {
+    private void loadTransitionTable(String filePath) {
+        try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
             String line;
-            while ((line = br.readLine()) != null) {
-                if (line.startsWith("#")) continue; // Skip comments
-                String[] parts = line.split(", ");
-                if (parts.length == 3) {
-                    int currentState = Integer.parseInt(parts[0]);
-                    String inputSymbol = parts[1].trim();
-                    int nextState = Integer.parseInt(parts[2]);
+            boolean startStateFound = false;
 
-                    transitionTable.putIfAbsent(currentState, new HashMap<>());
-                    transitionTable.get(currentState).put(inputSymbol, nextState);
+            while ((line = br.readLine()) != null) {
+                line = line.trim();
+
+                if (line.startsWith("#") || line.isEmpty()) continue; // Skip comments and empty lines
+
+                if (line.startsWith("DFA Start State:")) {
+                    // Extract the start state
+                    startState = Integer.parseInt(line.split(":")[1].trim());
+                    startStateFound = true;
+                } else if (line.startsWith("DFA Accept States:")) {
+                    // Extract accept states
+                    String[] states = line.split(":")[1].trim().split("\\s+"); // Split by whitespace
+                    for (String state : states) {
+                        acceptStates.add(Integer.parseInt(state.trim()));
+                    }
+                } else if (line.startsWith("DFA States and Transitions:")) {
+                    // Start processing states and transitions
+                    continue; // Skip this line
+                } else if (line.startsWith("State ")) {
+                    // Extract current state
+                    String[] stateParts = line.split(":");
+                    int currentState = Integer.parseInt(stateParts[0].replace("State ", "").trim());
+
+                    // Process transitions
+                    while ((line = br.readLine()) != null) {
+                        line = line.trim();
+                        if (line.isEmpty() || line.startsWith("State ")) {
+                            // End of the current state's transitions
+                            break;
+                        }
+
+                        // Split transitions on "->"
+                        String[] transitionParts = line.trim().split("->");
+                        if (transitionParts.length == 2) {
+                            String inputSymbol = transitionParts[0].trim();
+                            int nextState = Integer.parseInt(transitionParts[1].trim());
+
+                            transitionTable.putIfAbsent(currentState, new HashMap<>());
+                            transitionTable.get(currentState).put(inputSymbol, nextState);
+                        }
+                    }
                 }
             }
+
+            if (!startStateFound) {
+                throw new IllegalArgumentException("Start state not found in the transition table.");
+            }
+
             System.out.println("Transition table loaded successfully.");
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
+
     public Token[] getTokens(String input)
     {
         int currentState = startState;
         StringBuilder currentToken = new StringBuilder();
-        boolean isTokenFound = false;
-        int tokenStartState = startState;
-
         List<Token> tokens = new ArrayList<>();
 
-        for (char ch : input.toCharArray())
+        for (int i = 0; i < input.length(); )
         {
-            String symbol = String.valueOf(ch);
-            currentState = transitionTable.getOrDefault(currentState, new HashMap<>()).getOrDefault(symbol, acceptState);
+            int codePoint = input.codePointAt(i);
+            String symbol = new String(Character.toChars(codePoint));
 
-            if (currentState != acceptState)
+            if (symbol.isBlank() || symbol.equals(" "))
             {
-                currentToken.append(ch);
-                isTokenFound = true;
+                i += Character.charCount(codePoint);
+                continue;
+            }
+
+            System.out.println(symbol);
+
+            Integer nextState = transitionTable.getOrDefault(currentState, new HashMap<>()).get(symbol);
+
+            if (nextState != null)
+            {
+                currentToken.append(symbol);
+                currentState = nextState;
             } else
             {
-                // If we hit the error state, we need to determine the token type
-                if (isTokenFound)
+                if (acceptStates.contains(currentState))
                 {
-                    // Create a token based on the last accepted state
-                    String tokenType = getTokenType(tokenStartState);
+                    String tokenType = getTokenType(currentState);
                     tokens.add(new Token(tokenType, currentToken.toString()));
-                    currentToken.setLength(0); // Reset for next token
-                    isTokenFound = false;
                 }
-                // Reset to starting state if we hit an error
-                currentState = startState;
-                currentToken.setLength(0);
-            }
-            tokenStartState = currentState;
-        }
 
-        // Check if there's a token left at the end
-        if (isTokenFound)
+                // Reset for the next token
+                currentState = startState;
+                currentToken.setLength(0); // Clear the current token
+
+                // Check if the character itself can start a new token
+                nextState = transitionTable.getOrDefault(currentState, new HashMap<>()).get(symbol);
+                if (nextState != null)
+                {
+                    currentToken.append(symbol);
+                    currentState = nextState;
+                } else
+                {
+                    tokens.add(new Token("UNKNOWN", String.valueOf(symbol)));
+                }
+            }
+            i += Character.charCount(codePoint);
+        }
+        if (acceptStates.contains(currentState))
         {
-            String tokenType = getTokenType(tokenStartState);
+            String tokenType = getTokenType(currentState);
             tokens.add(new Token(tokenType, currentToken.toString()));
         }
 
         return tokens.toArray(new Token[0]);
     }
 
+
+    private String readInputFromFile(String inputFilePath)
+    {
+        if (!inputFilePath.endsWith(".\uD83D\uDE2D"))
+        {
+            throw new IllegalArgumentException("Input file must be of type .\uD83D\uDE2D");
+        }
+
+        StringBuilder inputBuilder = new StringBuilder();
+
+        try (BufferedReader br = new BufferedReader(new FileReader(inputFilePath)))
+        {
+            int character;
+            while ((character = br.read()) != -1)
+            {
+                inputBuilder.append((char) character);
+            }
+        } catch (IOException e)
+        {
+            e.printStackTrace();
+        }
+
+        return inputBuilder.toString().trim();
+    }
     private String getTokenType(int state)
     {
-        // Define token types based on the state
-        switch (state)
+        switch (state)  // 19 18 21 31 26
         {
             case 1:
                 return "IDENTIFIER"; // Matches [a-z][a-z]*
-            case 2:
+            case 31:
                 return "NUMBER"; // Matches ^\\d+(\\.\\d{0,1})?$
-            case 3:
+            case 18:
                 return "OPERATOR"; // Matches [⏩➕➖➗❌💯🤯🌏]
-            case 4:
+            case 19:
                 return "KEYWORD"; // Matches \\b💹|🔢|🚗|🏳️|🚩|🏁🏎\\b
-            case 5:
+            case 26:
                 return "DELIMITER"; // Matches 🔕(?s).*?🔕
-            case 6:
+            case 21:
                 return "PUNCTUATION"; // Matches [💲]
             case 7:
                 return "WHITESPACE"; // Matches \\s+
@@ -133,17 +198,35 @@ public class Scanner
         }
     }
 
+    public void printTransitionTable() {
+        StringBuilder sb = new StringBuilder();
+
+        sb.append("DFA Start State: ").append(startState).append("\n");
+        sb.append("DFA Accept States: ").append(String.join(" ", acceptStates.stream().map(String::valueOf).toArray(String[]::new))).append("\n");
+        sb.append("DFA States and Transitions:\n");
+
+        for (Map.Entry<Integer, Map<String, Integer>> entry : transitionTable.entrySet()) {
+            int state = entry.getKey();
+            sb.append("\tState ").append(state).append(":\n");
+
+            for (Map.Entry<String, Integer> transition : entry.getValue().entrySet()) {
+                String inputSymbol = transition.getKey();
+                int nextState = transition.getValue();
+                sb.append("\t").append(inputSymbol).append(" -> ").append(nextState).append("\n");
+            }
+        }
+
+        System.out.println(sb.toString());
+    }
     public static void main(String[] args)
     {
-        Scanner tokenizer = new Scanner("transition_table.txt");
-        String[] input = {
-                "🔢", "a", "=", "5",
-                "🔢", "b", "=", "6",
-                "🔢", "c", "=", "a", "➕", "b",
-                "return", "🚩"
-        };
-        Token[] tokens = tokenizer.getTokens(input[0]);
+        Scanner tokenizer = new Scanner("D:\\projects\\crying-face-programming-language\\States\\transition_table.txt");
+        tokenizer.printTransitionTable();
 
+        String inputFilePath = "D:\\projects\\crying-face-programming-language\\InputFiles\\test1.\uD83D\uDE2D";
+        String input = tokenizer.readInputFromFile(inputFilePath);
+       // System.out.println(input);
+        Token[] tokens = tokenizer.getTokens(input);
         for (Token token : tokens)
         {
             System.out.println(token);

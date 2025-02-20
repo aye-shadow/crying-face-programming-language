@@ -103,17 +103,23 @@ public class DFA {
         try (PrintWriter writer = new PrintWriter("States/transition_table.txt")) {
             writer.println("DFA Start State: " + startState.getId());
 
-            writer.println("\nDFA Accept States:");
-            for (State state : acceptStates) {
-                writer.println("\tState " + state.getId());
+            // print accepting states
+            writer.print("DFA Accept States:");
+            for (State state : states) {
+                if (state.getTransitions().isEmpty()) {
+                    acceptStates.add(state);
+                    writer.print(" " + state.getId());
+                }
             }
 
             writer.println("\nDFA States and Transitions:");
             for (State state : states) {
                 writer.println("\tState " + state.getId() + ":");
-                for (Map.Entry<Pattern, Set<State>> entry : state.getTransitions().entrySet()) {
-                    for (State targetState : entry.getValue()) {
-                        writer.println("\t  " + entry.getKey().pattern() + " -> State " + targetState.getId());
+                for (Map.Entry<Pattern, Set<State>> entry : state.getTransitions().entrySet())
+                {
+                    for (State targetState : entry.getValue())
+                    {
+                        writer.println("  " + entry.getKey().pattern() + " -> " + targetState.getId());
                     }
                 }
             }
