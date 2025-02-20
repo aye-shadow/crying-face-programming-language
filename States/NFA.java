@@ -302,6 +302,7 @@ public class NFA {
 
                 if (patternStr.charAt(i + 1) == '*') {
                     currentState.addTransition(Pattern.compile("[" + charClass + "]*"), currentState);
+                    ++i;
                     continue;
                 }
 
@@ -316,6 +317,10 @@ public class NFA {
         }
 
         addAcceptState(currentState);
+
+        // print current state's info
+         System.out.println("Current State: " + currentState.getId());
+
     }
 
     public void regularExpressionToNFA() {
@@ -389,7 +394,7 @@ public class NFA {
         return startState;
     }
 
-    public Collection<Object> getAcceptStates() {
-        return Collections.singleton(acceptStates);
+    public Set<State> getAcceptStates() {
+        return acceptStates;
     }
 }

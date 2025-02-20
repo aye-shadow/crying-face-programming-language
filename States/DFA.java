@@ -16,6 +16,8 @@ public class DFA {
     public DFA() {
         this.nfa = NFA.getInstance();
         nfa.regularExpressionToNFA();
+        nfa.printNFA();
+
         this.states = new HashSet<>();
         this.acceptStates = new HashSet<>();
         this.nfaStatesToDfaState = new HashMap<>();
@@ -51,14 +53,17 @@ public class DFA {
     }
 
     private void convertNFAtoDFA() {
-        // Create initial state from epsilon closure of NFA start state
         Set<State> initialStates = getEpsilonClosure(Collections.singleton(nfa.getStartState()));
         State dfaStartState = new State();
         startState = dfaStartState;
         states.add(dfaStartState);
         nfaStatesToDfaState.put(initialStates, dfaStartState);
 
-        // Process states queue
+        // Mark as accepting if any NFA state in the set is accepting
+        if (initialStates.stream().anyMatch(s -> nfa.getAcceptStates().contains(s))) {
+            acceptStates.add(dfaStartState);
+        }
+
         Queue<Set<State>> unprocessedStates = new LinkedList<>();
         unprocessedStates.add(initialStates);
 
@@ -66,13 +71,11 @@ public class DFA {
             Set<State> currentStates = unprocessedStates.poll();
             State currentDFAState = nfaStatesToDfaState.get(currentStates);
 
-            // Get all possible input symbols from current states
             Set<Pattern> symbols = currentStates.stream()
                     .flatMap(state -> state.getTransitions().keySet().stream())
                     .filter(pattern -> !pattern.pattern().equals("ε"))
                     .collect(Collectors.toSet());
 
-            // Process each symbol
             for (Pattern symbol : symbols) {
                 Set<State> nextStates = getEpsilonClosure(move(currentStates, symbol));
 
@@ -84,6 +87,11 @@ public class DFA {
                     states.add(dfaState);
                     nfaStatesToDfaState.put(nextStates, dfaState);
                     unprocessedStates.add(nextStates);
+
+                    // Mark new state as accepting if it contains any accepting NFA states
+                    if (nextStates.stream().anyMatch(s -> nfa.getAcceptStates().contains(s))) {
+                        acceptStates.add(dfaState);
+                    }
                 }
 
                 currentDFAState.addTransition(symbol, dfaState);
@@ -93,16 +101,11 @@ public class DFA {
 
     public void printDFA() {
         try (PrintWriter writer = new PrintWriter("States/transition_table.txt")) {
-            // print starting state
             writer.println("DFA Start State: " + startState.getId());
 
-            // print accepting states
             writer.println("\nDFA Accept States:");
-            for (State state : states) {
-                if (state.getTransitions().isEmpty()) {
-                    acceptStates.add(state);
-                    writer.println("\tState " + state.getId());
-                }
+            for (State state : acceptStates) {
+                writer.println("\tState " + state.getId());
             }
 
             writer.println("\nDFA States and Transitions:");

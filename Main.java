@@ -1,11 +1,22 @@
 import States.DFA;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import Scanner.Scanner;
+import java.util.stream.Stream;
+
 public class Main
 {
     public static void main(String[] args)
     {
         DFA dfa = new DFA();
         dfa.printDFA();
+
+        Scanner scanner = new Scanner("States/transition_table.txt");
+        scanner.fileProcessor.processFiles();
     }
 }
 

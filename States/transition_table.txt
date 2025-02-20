@@ -1,47 +1,56 @@
-DFA Start State: 13
+DFA Start State: 17
 
 DFA Accept States:
-	State 17
-	State 23
-	State 14
-	State 22
-	State 16
+	State 18
+	State 19
+	State 21
+	State 20
+	State 31
+	State 26
 
 DFA States and Transitions:
-	State 13:
-	  🌏 -> State 14
-	  ❌ -> State 14
-	  [a-z] -> State 15
-	  ➖ -> State 14
-	  💯 -> State 14
-	  🔢 -> State 16
-	  🚩 -> State 16
-	  🤯 -> State 14
-	  ➗ -> State 14
-	  ⏩ -> State 14
-	  🚗 -> State 16
-	  💲 -> State 17
-	  🔕 -> State 18
-	  🏁🏎️ -> State 16
-	  ➕ -> State 14
-	  \d -> State 19
-	  💹 -> State 16
-	State 17:
-	State 23:
-	State 14:
-	State 15:
-	  [a-z]* -> State 15
-	State 22:
-	State 16:
-	State 19:
-	  \. -> State 21
-	  \d* -> State 19
 	State 18:
-	  . -> State 18
-	  🔕 -> State 20
+	State 24:
+	  🔕 -> State 26
+	State 25:
+	  \d -> State 27
 	State 20:
+	State 31:
+	State 30:
+	  \d -> State 31
+	State 29:
+	  \d -> State 30
+	State 27:
+	  \d -> State 28
+	State 17:
+	  💹 -> State 18
+	  🚗 -> State 18
+	  🚩 -> State 18
+	  ⏩ -> State 19
+	  💲 -> State 20
+	  🌏 -> State 19
+	  🏁🏎️ -> State 18
+	  🤯 -> State 19
+	  ➖ -> State 19
+	  ❌ -> State 19
+	  ➗ -> State 19
+	  ➕ -> State 19
+	  💯 -> State 19
+	  🔢 -> State 18
+	  [a-z] -> State 21
 	  🔕 -> State 22
-	State 21:
 	  \d -> State 23
+	State 23:
+	  \. -> State 25
+	  \d* -> State 23
+	State 22:
+	  . -> State 22
+	  🔕 -> State 24
+	State 19:
+	State 21:
+	  [a-z]* -> State 21
+	State 28:
+	  \d -> State 29
+	State 26:
 
 

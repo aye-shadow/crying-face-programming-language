@@ -28,6 +28,7 @@ public class Scanner
     private Map<Integer, Map<String, Integer>> transitionTable;
     private int startState;
     private int acceptState;
+    public FileProcessor fileProcessor = null;
 
     public Scanner(String filePath)
     {
@@ -35,6 +36,7 @@ public class Scanner
         loadTransitionTable(filePath);
         startState = 0;
         acceptState = 4; // Assuming 4 is the error state (non-accepting)
+        fileProcessor = new FileProcessor();
     }
 
     private void loadTransitionTable(String filePath)
