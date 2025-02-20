@@ -11,8 +11,9 @@ public class DFA {
     private Map<Set<State>, State> nfaStatesToDfaState;
     private NFA nfa;
 
-    public DFA(NFA nfa) {
-        this.nfa = nfa;
+    public DFA() {
+        this.nfa = NFA.getInstance();
+        nfa.regularExpressionToNFA();
         this.states = new HashSet<>();
         this.acceptStates = new HashSet<>();
         this.nfaStatesToDfaState = new HashMap<>();
@@ -110,5 +111,7 @@ public class DFA {
                 }
             }
         }
+
+        System.out.println("\n");
     }
 }

@@ -16,12 +16,7 @@ public class Main
 {
     public static void main(String[] args)
     {
-        NFA nfa = NFA.getInstance();
-        nfa.regularExpressionToNFA();
-        // nfa.printNFA();
-//         nfa.nfaGraphToTable();
-
-        DFA dfa = new DFA(nfa);
+        DFA dfa = new DFA();
         dfa.printDFA();
 
         // Sample tokens parsed from the provided code
