@@ -1,10 +1,11 @@
+import States.DFA;
+
 public class Main
 {
     public static void main(String[] args)
     {
-        States.NFA nfa = new States.NFA();
-        nfa.regularExpressionToNFA();
-        nfa.printNFA();
+        DFA dfa = new DFA();
+        dfa.printDFA();
     }
 }
 

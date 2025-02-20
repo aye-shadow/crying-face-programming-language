@@ -1,5 +1,7 @@
 package States;
 
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -90,28 +92,33 @@ public class DFA {
     }
 
     public void printDFA() {
-        // print starting state
-        System.out.println("DFA Start State: " + startState.getId());
+        try (PrintWriter writer = new PrintWriter("States/transition_table.txt")) {
+            // print starting state
+            writer.println("DFA Start State: " + startState.getId());
 
-        // print accepting states
-        System.out.println("\nDFA Accept States:");
-        for (State state : states) {
-            if (state.getTransitions().isEmpty()) {
-                acceptStates.add(state);
-                System.out.println("\tState " + state.getId());
-            }
-        }
-
-        System.out.println("\nDFA States and Transitions:");
-        for (State state : states) {
-            System.out.println("\tState " + state.getId() + ":");
-            for (Map.Entry<Pattern, Set<State>> entry : state.getTransitions().entrySet()) {
-                for (State targetState : entry.getValue()) {
-                    System.out.println("\t  " + entry.getKey().pattern() + " -> State " + targetState.getId());
+            // print accepting states
+            writer.println("\nDFA Accept States:");
+            for (State state : states) {
+                if (state.getTransitions().isEmpty()) {
+                    acceptStates.add(state);
+                    writer.println("\tState " + state.getId());
                 }
             }
-        }
 
-        System.out.println("\n");
+            writer.println("\nDFA States and Transitions:");
+            for (State state : states) {
+                writer.println("\tState " + state.getId() + ":");
+                for (Map.Entry<Pattern, Set<State>> entry : state.getTransitions().entrySet()) {
+                    for (State targetState : entry.getValue()) {
+                        writer.println("\t  " + entry.getKey().pattern() + " -> State " + targetState.getId());
+                    }
+                }
+            }
+
+            writer.println("\n");
+            System.out.println("DFA transition table has been saved to transition_table.txt");
+        } catch (FileNotFoundException e) {
+            System.err.println("Error writing to file: " + e.getMessage());
+        }
     }
 }
