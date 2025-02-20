@@ -348,28 +348,40 @@ public class NFA {
     }
 
     public void nfaGraphToTable() {
-        System.out.println("NFA Transition Table:");
-        System.out.println("State\tTransitions");
+        // Find the longest transition string to determine column width
+        int maxTransitionLength = states.stream()
+                .map(state -> formatStateTransitions(state.getTransitions()))
+                .mapToInt(String::length)
+                .max()
+                .orElse(20);
 
+        // Format the header
+        String headerFormat = "%-8s %-" + maxTransitionLength + "s%n";
+        System.out.printf(headerFormat, "State", "Transitions");
+        System.out.println("-".repeat(8 + maxTransitionLength));
+
+        // Format each row
+        String rowFormat = "%-8d %-" + maxTransitionLength + "s%n";
         for (State state : states) {
-            StringBuilder transitions = new StringBuilder();
-            Map<Pattern, Set<State>> stateTransitions = state.getTransitions();
+            String transitions = formatStateTransitions(state.getTransitions());
+            System.out.printf(rowFormat, state.getId(), transitions);
+        }
+    }
 
-            if (!stateTransitions.isEmpty()) {
-                for (Map.Entry<Pattern, Set<State>> entry : stateTransitions.entrySet()) {
+    private String formatStateTransitions(Map<Pattern, Set<State>> stateTransitions) {
+        if (stateTransitions.isEmpty()) {
+            return "-";
+        }
+
+        return stateTransitions.entrySet().stream()
+                .map(entry -> {
                     String symbol = entry.getKey().pattern();
                     String nextStates = entry.getValue().stream()
                             .map(State::getId)
                             .map(String::valueOf)
                             .collect(Collectors.joining(","));
-
-                    transitions.append(symbol).append("->").append(nextStates).append("; ");
-                }
-                // Remove trailing separator
-                transitions.setLength(transitions.length() - 2);
-            }
-
-            System.out.println(state.getId() + "\t" + transitions);
-        }
+                    return symbol + "->" + nextStates;
+                })
+                .collect(Collectors.joining("; "));
     }
 }
