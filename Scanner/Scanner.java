@@ -133,7 +133,7 @@ public class Scanner
 
     public static void main(String[] args)
     {
-        Scanner tokenizer = new Scanner("dfa_transition_table.txt");
+        Scanner tokenizer = new Scanner("transition_table.txt");
         String[] input = {
                 "🔢", "a", "=", "5",
                 "🔢", "b", "=", "6",
