@@ -2,19 +2,16 @@ import java.util.*;
 import java.util.regex.*;
 
 class RegularExpression {
-    private final Map<String, String> tokenPatterns;
+    public final Map<String, Pattern> TOKENPATTERNS = new HashMap<>();
 
-    public RegularExpression() {
-        // Define token patterns
-        tokenPatterns = Map.of(
-                "PUNCTUATION", "[💲]",
-                "DELIMITER", "🔕(?s).*?🔕",
-                "KEYWORD", "\\b💹|🔢|🔤|🏳️|🚩|🌏|🏁🏎️\\b",
-                "OPERATOR", "[⏩➕➖➗❌💯🤯]",
-                "IDENTIFIER", "[a-z][a-z]*",
-                "NUMBER", "\\b\\d+(\\.\\d+)?\\b",
-                "WHITESPACE", "\\s+",
-                "UNKNOWN", "."
-        );
+    RegularExpression() {
+        TOKENPATTERNS.put("PUNCTUATION", Pattern.compile("[💲]"));
+        TOKENPATTERNS.put("DELIMITER", Pattern.compile("🔕(?s).*?🔕"));
+        TOKENPATTERNS.put("KEYWORD", Pattern.compile("\\b💹|🔢|🚗|🏳️|🚩|🏁🏎\\b"));
+        TOKENPATTERNS.put("OPERATOR", Pattern.compile("[⏩➕➖➗❌💯🤯🌏]"));
+        TOKENPATTERNS.put("IDENTIFIER", Pattern.compile("[a-z][a-z]*"));
+        TOKENPATTERNS.put("NUMBER", Pattern.compile("^\\d+(\\.\\d{0,1})?$"));
+        TOKENPATTERNS.put("WHITESPACE", Pattern.compile("\\s+"));
+        TOKENPATTERNS.put("UNKNOWN", Pattern.compile("."));
     }
 }
