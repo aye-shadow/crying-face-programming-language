@@ -1,3 +1,5 @@
+package States;
+
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -24,11 +26,5 @@ public class State {
 
     public Map<Pattern, Set<State>> getTransitions() {
         return transitions;
-    }
-
-    public void editTransition(Pattern symbol, State state) {
-        Set<State> states = transitions.computeIfAbsent(symbol, k -> new HashSet<>());
-        states.clear();
-        states.add(state);
     }
 }

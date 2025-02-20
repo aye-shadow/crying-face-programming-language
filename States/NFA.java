@@ -1,3 +1,5 @@
+package States;
+
 import java.util.*;
 import java.util.regex.Pattern;
 
@@ -321,14 +323,14 @@ public class NFA {
     }
 
     public void printNFA() {
-        System.out.println("Start State: " + startState.getId());
+        System.out.println("Start States.State: " + startState.getId());
         System.out.println("\nAccept States: " + acceptStates.stream().map(State::getId).toList());
         System.out.println("\nStates and Transitions:");
         for (State state : states) {
-            System.out.println("\tState " + state.getId() + ":");
+            System.out.println("\tStates.State " + state.getId() + ":");
             for (Map.Entry<Pattern, Set<State>> entry : state.getTransitions().entrySet()) {
                 for (State targetState : entry.getValue()) {
-                    System.out.println("\t  " + entry.getKey() + " -> State " + targetState.getId());
+                    System.out.println("\t  " + entry.getKey() + " -> States.State " + targetState.getId());
                 }
             }
         }

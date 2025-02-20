@@ -1,3 +1,5 @@
+import States.DFA;
+
 public class LexicalAnalyser {
     DFA dfa;
 
