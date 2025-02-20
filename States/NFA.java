@@ -384,4 +384,12 @@ public class NFA {
                 })
                 .collect(Collectors.joining("; "));
     }
+
+    public State getStartState() {
+        return startState;
+    }
+
+    public Collection<Object> getAcceptStates() {
+        return Collections.singleton(acceptStates);
+    }
 }

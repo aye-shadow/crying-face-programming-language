@@ -8,6 +8,7 @@
 //    }
 //}
 
+import States.DFA;
 import States.NFA;
 import Symbols.SymbolTable;
 
@@ -18,7 +19,10 @@ public class Main
         NFA nfa = NFA.getInstance();
         nfa.regularExpressionToNFA();
         // nfa.printNFA();
-         nfa.nfaGraphToTable();
+//         nfa.nfaGraphToTable();
+
+        DFA dfa = new DFA(nfa);
+        dfa.printDFA();
 
         // Sample tokens parsed from the provided code
         String[] tokens = {
