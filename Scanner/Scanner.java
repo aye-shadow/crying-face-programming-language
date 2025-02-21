@@ -1,24 +1,10 @@
 package Scanner;
-
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.*;
-
-class Token {
-    private String type;
-    private String value;
-
-    public Token(String type, String value) {
-        this.type = type;
-        this.value = value;
-    }
-
-    @Override
-    public String toString() {
-        return String.format("Token[type=%s, value=%s]", type, value);
-    }
-}
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 
 public class Scanner
 {
@@ -75,12 +61,37 @@ public class Scanner
                             int nextState = Integer.parseInt(transitionParts[1].trim());
 
                             // Convert special patterns to regex if needed
-                            if (inputSymbol.equals("\\d")) {
-                                inputSymbol = "\\d"; // Match a single digit
-                            } else if (inputSymbol.equals("\\d*")) {
-                                inputSymbol = "\\d*"; // Match zero or more digits
-                            } else if (inputSymbol.equals("[a-z]*")) {
-                                inputSymbol = "[a-z]*"; // Match zero or more lowercase letters
+                            if (inputSymbol.equals("\\d*"))
+                            {
+                                inputSymbol = "\\d*";
+                              //  System.out.println("Integer is matched");
+                            } else if (inputSymbol.equals("\\d"))
+                            {
+                                inputSymbol = "\\d";
+                              //  System.out.println("IntegerSS iare  matched");
+                            } else if (inputSymbol.equals("[a-z]*"))
+                            {
+                                inputSymbol = "[a-z]*";
+                              //  System.out.println("LowerCase Letters  matched");
+                            }
+                            else if (inputSymbol.equals("[a-z]"))
+                            {
+                                inputSymbol = "[a-z]";
+                              //  System.out.println("LowerCase  matched");
+                            }
+                            else if (inputSymbol.equals("\\."))
+                            {
+                                inputSymbol = "\\.";
+                                  System.out.println("LowerCase  matched");
+                            }
+                            else if (inputSymbol.equals("."))
+                            {
+                                inputSymbol = ".";
+                                //  System.out.println("LowerCase  matched");
+                            }
+                            else
+                            {
+                              //  System.out.println(inputSymbol + "Length of Input Symbol: " + inputSymbol.length());
                             }
 
                             transitionTable.putIfAbsent(currentState, new HashMap<>());
@@ -100,82 +111,288 @@ public class Scanner
         }
     }
 
-    public Token[] getTokens(String input)
+public Token[] getTokens(String input)
+{
+    int currentState = startState;
+    StringBuilder currentToken = new StringBuilder();
+    List<Token> tokens = new ArrayList<>();
+
+    for (int i = 0; i < input.length(); )
     {
-        int currentState = startState;
-        StringBuilder currentToken = new StringBuilder();
-        List<Token> tokens = new ArrayList<>();
-
-        String symbol;
-        for (int i = 0; i < input.length(); )
+        int codePoint = input.codePointAt(i);
+        String symbol = new String(Character.toChars(codePoint));
+        int[] codePoints = input.codePoints().toArray();
+        if (i < codePoints.length)
         {
-            int codePoint = input.codePointAt(i);
-             symbol = new String(Character.toChars(codePoint));
+            codePoint = codePoints[i];
+            symbol = new String(Character.toChars(codePoint));
+        }
 
-            if (symbol.isBlank() || symbol.equals(" "))
-            {
-                i += Character.charCount(codePoint);
-                continue;
+
+        if (symbol.isBlank() || symbol.equals(" "))
+        {
+            i += Character.charCount(codePoint);
+            continue;
+        }
+
+        Integer nextState = transitionTable.getOrDefault(currentState, new HashMap<>()).get(symbol);
+        Map<String, Integer> transitions = transitionTable.getOrDefault(currentState, new HashMap<>());
+
+        // Check regex patterns if direct transition fails
+        if (nextState == null)
+        {
+            for (String pattern : transitions.keySet()) {
+                if (symbol.matches(pattern)) {
+                    nextState = transitions.get(pattern);
+                    break;
+                }
             }
+        }
 
-         //   System.out.println(symbol);
-
-            Integer nextState = transitionTable.getOrDefault(currentState, new HashMap<>()).get(symbol);
-
-            if (nextState != null)
+        if (nextState != null)
+        {
+            // Continue building token
+            currentToken.append(symbol);
+            currentState = nextState;
+            i += Character.charCount(codePoint);
+        } else
+        {
+            // Finalize the current token if in an accepting state
+            if (acceptStates.contains(currentState))
             {
+                if (!currentToken.toString().equals(" ") && !currentToken.isEmpty())
+                tokens.add(new Token(getTokenType(currentState), currentToken.toString()));
+                currentState = startState;
+                currentToken.setLength(0);
                 currentToken.append(symbol);
-                currentState = nextState;
-            } else
+            }
+            else
             {
-                // READ THE NEXT LETTER
-//                if (acceptStates.contains(currentState))
-//                {
-//                    String tokenType = getTokenType(currentState);
-//                    tokens.add(new Token(tokenType, currentToken.toString()));
-//                }
+                if (!currentToken.toString().equals(" ") && !currentToken.isEmpty())
+                tokens.add(new Token(getTokenType(0), currentToken.toString()));
+                currentState = startState;
+                currentToken.setLength(0);
+                currentToken.append(symbol);
+            }
+            i += Character.charCount(codePoint);
 
-                // Reset for the next token
-             //   currentState = startState;
-            //    currentToken.setLength(0); // Clear the current token
 
-                // Check if the character itself can start a new token
-                nextState = transitionTable.getOrDefault(currentState, new HashMap<>()).get(symbol);
-                if (nextState != null)
+
+            nextState = transitionTable.getOrDefault(currentState, new HashMap<>()).get(symbol);
+            transitions = transitionTable.getOrDefault(currentState, new HashMap<>());
+
+            if (nextState ==null) // either skip or regex
+            {
+                // Check regex patterns if direct transition fails
+                    for (String pattern : transitions.keySet()) {
+                        if (symbol.matches(pattern)) {
+                            nextState = transitions.get(pattern);
+                            break;
+                        }
+                    }
+                if (nextState == null) // invalid
+                    // push it as unknown and empty token
                 {
-                    currentToken.append(symbol);
-                    currentState = nextState;
+                if (!currentToken.toString().equals(" ") && !currentToken.isEmpty())
+                tokens.add(new Token(getTokenType(0), currentToken.toString() ));
+                currentState = startState;
+                currentToken.setLength(0);}
+            }
+            if (nextState != null) // it was a valid token & push it if the nextState is null
+            {
+                if (i >= input.length()) {
+                    break;
+                }
+                String symbol2 ;
+                if (i < codePoints.length)
+                {
+                    codePoint = codePoints[i];
+                    symbol2 = new String(Character.toChars(codePoint));
                 }
                 else
                 {
-                    if (acceptStates.contains(currentState))
-                {
-                    String tokenType = getTokenType(currentState);
-                    tokens.add(new Token(tokenType, currentToken.toString()));
+                    break;
                 }
-                    else {
-                        tokens.add(new Token("UNKNOWN", String.valueOf(symbol)));
-                        System.out.println();
+                if (symbol2.isBlank() || symbol2.equals(" ")) // check and push
+                {
+                    if (acceptStates.contains(nextState))
+                    {
+                        if (!currentToken.toString().equals(" ") && !currentToken.isEmpty())
+                        tokens.add(new Token(getTokenType(nextState), currentToken.toString() ));
+                        currentState = startState;
+                        currentToken.setLength(0);
                     }
                 }
-                   currentState = startState;
-                    currentToken.setLength(0);
+                else
+                {   currentState = nextState;
+                    nextState = transitionTable.getOrDefault(currentState, new HashMap<>()).get(symbol2);
+                    if(nextState == null) // push it coz its a token, else continue
+                    {
+                        for (String pattern : transitions.keySet())
+                        { //regex
+                            if (symbol.matches(pattern))
+                            {
+                                nextState = transitions.get(pattern);
+                                break;
+                            }
+                        }
+                        if (nextState == null )
+                        if (acceptStates.contains(currentState))
+                        {
+
+                            if (!currentToken.toString().equals(" ") && !currentToken.isEmpty())
+                            tokens.add(new Token(getTokenType(currentState), currentToken.toString() ));
+                            currentState = startState;
+                            currentToken.setLength(0);
+                        }
+                    }
+                }
             }
-            i += Character.charCount(codePoint);
-        }
 
-        if (acceptStates.contains(currentState))
-        {
-            String tokenType = getTokenType(currentState);
-            tokens.add(new Token(tokenType, currentToken.toString()));
 
         }
-
-        return tokens.toArray(new Token[0]);
     }
 
+    // Add any remaining token if it's valid.
+    if (acceptStates.contains(currentState) && !currentToken.isEmpty())
+    {
+        tokens.add(new Token(getTokenType(currentState), currentToken.toString()));
+    }
 
-    private String readInputFromFile(String inputFilePath)
+    return tokens.toArray(new Token[0]);
+}
+
+
+//public Token[] getTokens(String input)
+//{
+//    int currentState = startState;
+//    StringBuilder currentToken = new StringBuilder();
+//    List<Token> tokens = new ArrayList<>();
+//
+//    for (int i = 0; i < input.length(); )
+//    {
+//        int codePoint = input.codePointAt(i);
+//        String symbol = new String(Character.toChars(codePoint));
+//
+//        if (symbol.isBlank() || symbol.equals(" "))
+//        {
+//            i += Character.charCount(codePoint);
+//            continue;
+//        }
+//
+//        Integer nextState = transitionTable.getOrDefault(currentState, new HashMap<>()).get(symbol);
+//        Map<String, Integer> transitions = transitionTable.getOrDefault(currentState, new HashMap<>());
+//
+//        // Check regex patterns if direct transition fails
+//        if (nextState == null)
+//        {
+//            for (String pattern : transitions.keySet()) {
+//                if (symbol.matches(pattern)) {
+//                    nextState = transitions.get(pattern);
+//                    break;
+//                }
+//            }
+//        }
+//
+//        if (nextState != null)
+//        {
+//            // Continue building token
+//            currentToken.append(symbol);
+//            currentState = nextState;
+//            i += Character.charCount(codePoint);
+//        } else
+//        {
+//            // Finalize the current token if in an accepting state
+//            if (acceptStates.contains(currentState))
+//            {
+//                if (currentToken.length() > 0 && !currentToken.toString().equals(" "))
+//                    tokens.add(new Token(getTokenType(currentState), currentToken.toString()));
+//                currentState = startState;
+//                currentToken.setLength(0);
+//                currentToken.append(symbol);
+//
+//            }
+//            else
+//            {
+//                if (currentToken.length() > 0 && !currentToken.toString().equals(" "))
+//                    tokens.add(new Token(getTokenType(0), currentToken.toString()));
+//                currentState = startState;
+//                currentToken.setLength(0);
+//                currentToken.append(symbol);
+//            }
+//            i += Character.charCount(codePoint);
+//            nextState = transitionTable.getOrDefault(currentState, new HashMap<>()).get(symbol);
+//            if (nextState ==null) // either skip or regex
+//            {
+//                for (String pattern : transitions.keySet()) { //regex
+//                    if (symbol.matches(pattern)) {
+//                        nextState = transitions.get(pattern);
+//                        break;
+//                    }
+//                }
+//                if (nextState == null) // invalid
+//                {
+//                    if (currentToken.length() > 0 && !currentToken.toString().equals(" "))
+//                        tokens.add(new Token(getTokenType(0), currentToken.toString()));
+//                    currentState = startState;
+//                    currentToken.setLength(0);
+//                }
+//            }
+//            if (nextState != null) // it was a valid token & push it if the nextState is null
+//            {
+//                codePoint = input.codePointAt(i);
+//                String symbol2 = new String(Character.toChars(codePoint)); // next symbol
+//                if (symbol2.isBlank() || symbol2.equals(" ")) // check and push
+//                {
+//                    if (acceptStates.contains(nextState))
+//                    {
+//                        if (currentToken.length() > 0 && !currentToken.toString().equals(" "))
+//                            tokens.add(new Token(getTokenType(nextState), currentToken.toString()));
+//                        currentState = startState;
+//                        currentToken.setLength(0);
+//                    }
+//                }
+//                else
+//                {
+//                    currentState = nextState;
+//                    nextState = transitionTable.getOrDefault(currentState, new HashMap<>()).get(symbol2);
+//                    if(nextState == null) // push it coz its a token, else continue
+//                    {
+//                        for (String pattern : transitions.keySet())
+//                        { //regex
+//                            if (symbol.matches(pattern))
+//                            {
+//                                nextState = transitions.get(pattern);
+//                                break;
+//                            }
+//                        }
+//                        if (nextState == null )
+//                        {
+//                            if (acceptStates.contains(currentState))
+//                            {
+//                                if (currentToken.length() > 0 && !currentToken.toString().equals(" "))
+//                                    tokens.add(new Token(getTokenType(currentState), currentToken.toString()));
+//                                currentState = startState;
+//                                currentToken.setLength(0);
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//    }
+//
+//    // Add any remaining token if it's valid
+//    if (acceptStates.contains(currentState) && currentToken.length() > 0)
+//    {
+//        tokens.add(new Token(getTokenType(currentState), currentToken.toString()));
+//    }
+//
+//    return tokens.toArray(new Token[0]);
+//}
+
+
+    public String readInputFromFile(String inputFilePath)
     {
         if (!inputFilePath.endsWith(".\uD83D\uDE2D"))
         {
@@ -200,12 +417,11 @@ public class Scanner
     }
     private String getTokenType(int state)
     {
-        switch (state)  // 19 18 21 31 26  || 18 20 31 19 26
+        switch (state)
         {
-            case 1:
+            case 21:
                 return "IDENTIFIER"; // Matches [a-z][a-z]*
-
-            case 31:
+            case 31,23,27,30,28:
                 return "NUMBER"; // Matches ^\\d+(\\.\\d{0,1})?$
             case 18:
                 return "OPERATOR"; // Matches [⏩➕➖➗❌💯🤯🌏]
@@ -213,9 +429,8 @@ public class Scanner
                 return "KEYWORD"; // Matches \\b💹|🔢|🚗|🏳️|🚩|🏁🏎\\b
             case 26:
                 return "DELIMITER"; // Matches 🔕(?s).*?🔕
-            case 21:
+            case 20:
                 return "PUNCTUATION"; // Matches [💲]
-
             case 7:
                 return "WHITESPACE"; // Matches \\s+
             default:

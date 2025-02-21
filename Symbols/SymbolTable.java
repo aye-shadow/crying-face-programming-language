@@ -1,5 +1,7 @@
 package Symbols;
 
+import Scanner.Scanner;
+import Scanner.Token;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -57,5 +59,18 @@ public class SymbolTable
         for (Symbol symbol : table.values()) {
             System.out.println(symbol);
         }
+    }
+
+    public static void main(String[] args)
+    {
+        Scanner tokenizer = new Scanner("D:\\projects\\New folder\\States\\transition_table.txt");
+      //  tokenizer.printTransitionTable();
+
+        String inputFilePath = "D:\\projects\\New folder\\InputFiles\\test1.\uD83D\uDE2D";
+        String input = tokenizer.readInputFromFile(inputFilePath);
+        // System.out.println(input);
+        Token[] tokens = tokenizer.getTokens(input);
+
+
     }
 }

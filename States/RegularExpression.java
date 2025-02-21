@@ -7,7 +7,7 @@ class RegularExpression {
     public final Map<String, Pattern> TOKENPATTERNS = new HashMap<>();
 
     RegularExpression() {
-        TOKENPATTERNS.put("PUNCTUATION", Pattern.compile("[💲]"));  //1
+        TOKENPATTERNS.put("PUNCTUATION", Pattern.compile("[💲:]"));  //1
         TOKENPATTERNS.put("DELIMITER", Pattern.compile("🔕(?s).*?🔕"));   //2
         TOKENPATTERNS.put("KEYWORD", Pattern.compile("\\b💹|🔢|🚗|🏳️|🚩|🏁🏎\\b"));  //3
         TOKENPATTERNS.put("OPERATOR", Pattern.compile("[⏩➕➖➗❌💯🤯🌏]"));  //4
