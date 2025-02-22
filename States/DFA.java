@@ -6,14 +6,16 @@ import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-public class DFA {
+public class DFA
+{
     private State startState;
     private Set<State> states;
     private Set<State> acceptStates;
     private Map<Set<State>, State> nfaStatesToDfaState;
     private NFA nfa;
 
-    public DFA() {
+    public DFA()
+    {
         this.nfa = NFA.getInstance();
         nfa.regularExpressionToNFA();
         nfa.printNFA();
@@ -103,17 +105,23 @@ public class DFA {
         try (PrintWriter writer = new PrintWriter("States/transition_table.txt")) {
             writer.println("DFA Start State: " + startState.getId());
 
-            writer.println("\nDFA Accept States:");
-            for (State state : acceptStates) {
-                writer.println("\tState " + state.getId());
+            // print accepting states
+            writer.print("DFA Accept States:");
+            for (State state : states) {
+                if (state.getTransitions().isEmpty()) {
+                    acceptStates.add(state);
+                    writer.print(" " + state.getId());
+                }
             }
 
             writer.println("\nDFA States and Transitions:");
             for (State state : states) {
                 writer.println("\tState " + state.getId() + ":");
-                for (Map.Entry<Pattern, Set<State>> entry : state.getTransitions().entrySet()) {
-                    for (State targetState : entry.getValue()) {
-                        writer.println("\t  " + entry.getKey().pattern() + " -> State " + targetState.getId());
+                for (Map.Entry<Pattern, Set<State>> entry : state.getTransitions().entrySet())
+                {
+                    for (State targetState : entry.getValue())
+                    {
+                        writer.println("  " + entry.getKey().pattern() + " -> " + targetState.getId());
                     }
                 }
             }
